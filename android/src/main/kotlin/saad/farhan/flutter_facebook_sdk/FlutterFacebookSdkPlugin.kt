@@ -1,5 +1,6 @@
 package saad.farhan.flutter_facebook_sdk
 
+
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -80,7 +81,11 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-
+            "initFbSdk" -> {
+                val args = call.arguments as HashMap<String, Any>
+                initFbSdkWithAppId(args["appId"].toString());
+                //logEvent(args["contentType"].toString(), args["contentData"].toString(), args["contentId"].toString(), args["currency"].toString(), args["price"].toString().toDouble(), call.method)
+            }
             "getPlatformVersion" -> {
                 result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
@@ -160,6 +165,16 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         logger.logEvent(AppEventsConstants.EVENT_NAME_SEARCHED, params)
     }
 
+    private fun initFbSdkWithAppId(appId: String) {
+        FacebookSdk.setApplicationId(appId)
+        FacebookSdk.sdkInitialize(context);
+        FacebookSdk.fullyInitialize()
+        FacebookSdk.getAutoLogAppEventsEnabled()
+        FacebookSdk.setAdvertiserIDCollectionEnabled(true)
+        FacebookSdk.setAutoInitEnabled(false)
+        logger = AppEventsLogger.newLogger(context)
+
+    }
     private fun logEvent(contentType: String, contentData: String, contentId: String, currency: String, price: Double, type: String) {
         val params = Bundle()
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT_TYPE, contentType)
@@ -184,8 +199,7 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
     }
 
     private fun initFbSdk() {
-        FacebookSdk.setAutoInitEnabled(true)
-        FacebookSdk.fullyInitialize()
+        FacebookSdk.setAutoInitEnabled(false)
         logger = AppEventsLogger.newLogger(context)
 
         val targetUri = AppLinks.getTargetUrlFromInboundIntent(context, activityPluginBinding!!.activity.intent)
@@ -229,7 +243,7 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
                 bundle.putBundle(key, nestedBundle as Bundle)
             } else {
                 throw IllegalArgumentException(
-                        "Unsupported value type: " + value.javaClass.kotlin)
+                    "Unsupported value type: " + value.javaClass.kotlin)
             }
         }
         return bundle
@@ -248,7 +262,7 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityPluginBinding = binding
         binding.addOnNewIntentListener(this)
-        initFbSdk()
+        //initFbSdk()
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
